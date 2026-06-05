@@ -1,9 +1,13 @@
 from fastapi import FastAPI
-from fastapi import HTTPException
 from src.models.transaction import Transaction
-app = FastAPI()
+from src.services.transaction_service import (
+    get_all_transactions,
+    get_transaction_by_id,
+    create_transaction,
+    delete_transaction_by_id
+)
 
-transactions = []
+app = FastAPI()
 
 
 @app.get("/")
@@ -13,35 +17,25 @@ def home():
 
 @app.get("/transactions")
 def get_transactions():
-    return transactions
+    return get_all_transactions()
+
 
 @app.get("/transactions/{transaction_id}")
 def get_transaction(transaction_id: int):
-    for transaction in transactions:
-        if transaction["id"] == transaction_id:
-            return transaction
-    raise HTTPException(status_code=404, detail="Transaction not found")
+    return get_transaction_by_id(transaction_id)
+
 
 @app.post("/transactions")
 def add_transaction(transaction: Transaction):
-    new_transaction = transaction.model_dump()
-    if not transactions:
-        new_transaction["id"] = 1
-    else:
-        max_id = max(transaction["id"] for transaction in transactions)
-        new_transaction["id"] = max_id + 1
-
-    transactions.append(new_transaction)
+    transaction_data = transaction.model_dump()
+    new_transaction = create_transaction(transaction_data)
 
     return {
         "message": "Transaction added successfully",
         "transaction": new_transaction
     }
 
+
 @app.delete("/transactions/{transaction_id}")
-def delete_transaction(transaction_id: int): 
-    for transaction in transactions:
-        if transaction["id"] == transaction_id:
-            transactions.remove(transaction)
-            return {"message": "Transaction deleted successfully"}
-    raise HTTPException(status_code=404, detail="Transaction not found")   
+def delete_transaction(transaction_id: int):
+    return delete_transaction_by_id(transaction_id)
