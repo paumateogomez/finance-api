@@ -5,7 +5,9 @@ from src.services.transaction_service import (
     get_transaction_by_id,
     create_transaction,
     delete_transaction_by_id,
-    load_transactions
+    load_transactions,
+    get_balance,
+    update_transaction_by_id
 )
 
 app = FastAPI()
@@ -41,3 +43,19 @@ def add_transaction(transaction: Transaction):
 @app.delete("/transactions/{transaction_id}")
 def delete_transaction(transaction_id: int):
     return delete_transaction_by_id(transaction_id)
+
+@app.get("/balance")
+def get_balance_endpoint():
+    return get_balance()
+
+@app.put("/transactions/{transaction_id}")
+def update_transaction(
+    transaction_id: int,
+    transaction: Transaction
+):
+    transaction_data = transaction.model_dump()
+
+    return update_transaction_by_id(
+        transaction_id,
+        transaction_data
+    )

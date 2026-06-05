@@ -66,3 +66,29 @@ def delete_transaction_by_id(transaction_id: int):
         status_code=404,
         detail="Transaction not found"
     )
+
+def get_balance():
+    balance = 0.0
+    income = 0.0
+    expenses = 0.0
+    for transaction in transactions:
+        if transaction["type"] == "income":
+            income += transaction["amount"]
+            balance += transaction["amount"]
+        elif transaction["type"] == "expense":
+            expenses += transaction["amount"]
+            balance -= transaction["amount"]
+
+    return {"balance": balance, "income": income, "expenses": expenses}
+
+def update_transaction_by_id(transaction_id: int, updated_data: dict):
+    for transaction in transactions:
+        if transaction["id"] == transaction_id:
+            transaction.update(updated_data)
+            save_transactions()
+            return transaction
+
+    raise HTTPException(
+        status_code=404,
+        detail="Transaction not found"
+    )
