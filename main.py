@@ -4,11 +4,13 @@ from src.services.transaction_service import (
     get_all_transactions,
     get_transaction_by_id,
     create_transaction,
-    delete_transaction_by_id
+    delete_transaction_by_id,
+    load_transactions
 )
 
 app = FastAPI()
 
+load_transactions()
 
 @app.get("/")
 def home():

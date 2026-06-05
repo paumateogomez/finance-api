@@ -1,6 +1,24 @@
 from fastapi import HTTPException
+import json
 
 transactions = []
+
+DATA_FILE = "data/transactions.json"
+
+
+def load_transactions():
+    global transactions
+
+    try:
+        with open(DATA_FILE, "r") as file:
+            transactions = json.load(file)
+    except:
+        transactions = []
+
+
+def save_transactions():
+    with open(DATA_FILE, "w") as file:
+        json.dump(transactions, file, indent=4)
 
 
 def get_all_transactions():
@@ -27,6 +45,7 @@ def create_transaction(transaction_data: dict):
         transaction_data["id"] = max_id + 1
 
     transactions.append(transaction_data)
+    save_transactions()
 
     return transaction_data
 
@@ -37,6 +56,7 @@ def delete_transaction_by_id(transaction_id: int):
 
         if transaction["id"] == transaction_id:
             transactions.remove(transaction)
+            save_transactions()
 
             return {
                 "message": "Transaction deleted successfully"
