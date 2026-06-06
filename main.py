@@ -7,7 +7,8 @@ from src.services.transaction_service import (
     delete_transaction_by_id,
     load_transactions,
     get_balance,
-    update_transaction_by_id
+    update_transaction_by_id,
+    get_transactions_by_type
 )
 
 app = FastAPI()
@@ -59,3 +60,8 @@ def update_transaction(
         transaction_id,
         transaction_data
     )
+
+@app.get("/transactions/type/{transaction_type}")
+def filter_transactions(transaction_type: str):
+    return get_transactions_by_type(transaction_type)       
+

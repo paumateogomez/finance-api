@@ -26,9 +26,10 @@ def get_all_transactions():
 
 
 def get_transaction_by_id(transaction_id: int):
-    for transaction in transactions:
-        if transaction["id"] == transaction_id:
-            return transaction
+    transaction = find_transaction_by_id(transaction_id)
+
+    if transaction is not None:
+        return transaction
 
     raise HTTPException(
         status_code=404,
@@ -51,16 +52,15 @@ def create_transaction(transaction_data: dict):
 
 
 def delete_transaction_by_id(transaction_id: int):
+    transaction = find_transaction_by_id(transaction_id)
 
-    for transaction in transactions:
+    if transaction is not None:
+        transactions.remove(transaction)
+        save_transactions()
 
-        if transaction["id"] == transaction_id:
-            transactions.remove(transaction)
-            save_transactions()
-
-            return {
-                "message": "Transaction deleted successfully"
-            }
+        return {
+            "message": "Transaction deleted successfully"
+        }
 
     raise HTTPException(
         status_code=404,
@@ -82,13 +82,31 @@ def get_balance():
     return {"balance": balance, "income": income, "expenses": expenses}
 
 def update_transaction_by_id(transaction_id: int, updated_data: dict):
-    for transaction in transactions:
-        if transaction["id"] == transaction_id:
-            transaction.update(updated_data)
-            save_transactions()
-            return transaction
+    transaction = find_transaction_by_id(transaction_id)
+
+    if transaction is not None:
+        transaction.update(updated_data)
+        save_transactions()
+        return transaction
 
     raise HTTPException(
         status_code=404,
         detail="Transaction not found"
     )
+
+def get_transactions_by_type(transaction_type: str):
+    filtered_transactions = [
+        transaction for transaction in transactions
+        if transaction["type"] == transaction_type
+    ]
+
+    return filtered_transactions
+
+def find_transaction_by_id(transaction_id: int):
+
+    for transaction in transactions:
+
+        if transaction["id"] == transaction_id:
+            return transaction
+
+    return None

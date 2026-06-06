@@ -1,19 +1,13 @@
 [
     {
-        "type": "expense",
-        "amount": 999.0,
-        "category": "food",
-        "id": 1
-    },
-    {
         "type": "income",
         "amount": 400.0,
         "category": "string",
         "id": 2
     },
     {
-        "type": "expense",
-        "amount": 400.0,
+        "type": "string",
+        "amount": 0.0,
         "category": "string",
         "id": 3
     },
