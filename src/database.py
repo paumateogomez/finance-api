@@ -173,3 +173,22 @@ def get_total_amount_by_type(transaction_type: str):
     connection.close()
 
     return result[0] or 0
+
+def get_transactions_by_category_from_db(category: str):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, type, amount, category
+        FROM transactions
+        WHERE category = ?
+        """,
+        (category,)
+    )
+
+    rows = cursor.fetchall()
+
+    connection.close()
+
+    return rows

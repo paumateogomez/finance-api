@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from src.database import insert_transaction, get_all_transactions_from_db, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_transactions_by_type_from_db, get_total_amount_by_type
+from src.database import insert_transaction, get_all_transactions_from_db, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_transactions_by_type_from_db, get_total_amount_by_type, get_transactions_by_category_from_db
 
 def get_transaction_by_id(transaction_id: int):
     row = get_transaction_by_id_from_db(transaction_id)
@@ -97,4 +97,16 @@ def get_all_transactions():
     ]
     return transactions
 
+def get_transactions_by_category(category: str):
+    raw_transactions = get_transactions_by_category_from_db(category)
 
+    transactions = [
+        {
+            "id": row[0],
+            "type": row[1],
+            "amount": row[2],
+            "category": row[3]
+        }
+        for row in raw_transactions
+    ]   
+    return transactions

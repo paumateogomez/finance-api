@@ -65,3 +65,6 @@ def update_transaction(
 def filter_transactions(transaction_type: str):
     return get_transactions_by_type(transaction_type)       
 
+@app.get("/transactions/category")
+def filter_by_category(category: str):
+    return get_transactions_by_category(category)
