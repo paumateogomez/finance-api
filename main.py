@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.models.transaction import Transaction
+from src.database import initialize_database
 from src.services.transaction_service import (
     get_all_transactions,
     get_transaction_by_id,
@@ -12,6 +13,8 @@ from src.services.transaction_service import (
 )
 
 app = FastAPI()
+
+initialize_database()
 
 load_transactions()
 

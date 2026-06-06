@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 import json
-
-transactions = []
+from src.database import insert_transaction, get_all_transactions_from_db, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_transactions_by_type_from_db, get_total_amount_by_type
 
 DATA_FILE = "data/transactions.json"
 
@@ -21,42 +20,35 @@ def save_transactions():
         json.dump(transactions, file, indent=4)
 
 
-def get_all_transactions():
-    return transactions
-
 
 def get_transaction_by_id(transaction_id: int):
-    transaction = find_transaction_by_id(transaction_id)
-
-    if transaction is not None:
-        return transaction
-
+    row = get_transaction_by_id_from_db(transaction_id)
+    if row is not None:
+        return {
+            "id": row[0],
+            "type": row[1],
+            "amount": row[2],
+            "category": row[3]
+        }
     raise HTTPException(
-        status_code=404,
-        detail="Transaction not found"
+        status_code=404,     detail="Transaction not found"
     )
 
 
 def create_transaction(transaction_data: dict):
+    transaction_id = insert_transaction(transaction_data)
 
-    if not transactions:
-        transaction_data["id"] = 1
-    else:
-        max_id = max(transaction["id"] for transaction in transactions)
-        transaction_data["id"] = max_id + 1
-
-    transactions.append(transaction_data)
-    save_transactions()
+    transaction_data["id"] = transaction_id
 
     return transaction_data
 
 
 def delete_transaction_by_id(transaction_id: int):
-    transaction = find_transaction_by_id(transaction_id)
 
-    if transaction is not None:
-        transactions.remove(transaction)
-        save_transactions()
+    row = get_transaction_by_id_from_db(transaction_id)
+
+    if row is not None:
+        delete_transaction_by_id_from_db(transaction_id)
 
         return {
             "message": "Transaction deleted successfully"
@@ -68,39 +60,49 @@ def delete_transaction_by_id(transaction_id: int):
     )
 
 def get_balance():
-    balance = 0.0
-    income = 0.0
-    expenses = 0.0
-    for transaction in transactions:
-        if transaction["type"] == "income":
-            income += transaction["amount"]
-            balance += transaction["amount"]
-        elif transaction["type"] == "expense":
-            expenses += transaction["amount"]
-            balance -= transaction["amount"]
+    income = get_total_amount_by_type("income")
+    expense = get_total_amount_by_type("expense")
 
-    return {"balance": balance, "income": income, "expenses": expenses}
+    balance = income - expense
+
+    return {
+        "balance": balance,
+        "income": income,
+        "expense": expense
+    }
 
 def update_transaction_by_id(transaction_id: int, updated_data: dict):
-    transaction = find_transaction_by_id(transaction_id)
+    row = get_transaction_by_id_from_db(transaction_id)
+    if row is not None:
+        updated_transaction = {
+            "id": row[0],
+            "type": updated_data.get("type", row[1]),
+            "amount": updated_data.get("amount", row[2]),
+            "category": updated_data.get("category", row[3])
+        }
 
-    if transaction is not None:
-        transaction.update(updated_data)
-        save_transactions()
-        return transaction
+        update_transaction_by_id_from_db(transaction_id, updated_transaction)
 
+        return updated_transaction
     raise HTTPException(
-        status_code=404,
-        detail="Transaction not found"
-    )
+        status_code=404,   detail="Transaction not found" 
+    )   
+
 
 def get_transactions_by_type(transaction_type: str):
-    filtered_transactions = [
-        transaction for transaction in transactions
-        if transaction["type"] == transaction_type
-    ]
+    raw_transactions = get_transactions_by_type_from_db(transaction_type)
 
-    return filtered_transactions
+    transactions = [
+        {
+            "id": row[0],
+            "type": row[1],
+            "amount": row[2],
+            "category": row[3]
+        }
+        for row in raw_transactions
+    ]   
+    return transactions 
+    
 
 def find_transaction_by_id(transaction_id: int):
 
@@ -110,3 +112,18 @@ def find_transaction_by_id(transaction_id: int):
             return transaction
 
     return None
+
+def get_all_transactions():
+    rows = get_all_transactions_from_db()
+    transactions = [
+        {
+            "id": row[0],
+            "type": row[1],
+            "amount": row[2],
+            "category": row[3]
+        }
+        for row in rows
+    ]
+    return transactions
+
+
