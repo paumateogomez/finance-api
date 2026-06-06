@@ -1,25 +1,5 @@
 from fastapi import HTTPException
-import json
 from src.database import insert_transaction, get_all_transactions_from_db, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_transactions_by_type_from_db, get_total_amount_by_type
-
-DATA_FILE = "data/transactions.json"
-
-
-def load_transactions():
-    global transactions
-
-    try:
-        with open(DATA_FILE, "r") as file:
-            transactions = json.load(file)
-    except:
-        transactions = []
-
-
-def save_transactions():
-    with open(DATA_FILE, "w") as file:
-        json.dump(transactions, file, indent=4)
-
-
 
 def get_transaction_by_id(transaction_id: int):
     row = get_transaction_by_id_from_db(transaction_id)
@@ -58,17 +38,17 @@ def delete_transaction_by_id(transaction_id: int):
         status_code=404,
         detail="Transaction not found"
     )
-
+    
 def get_balance():
     income = get_total_amount_by_type("income")
-    expense = get_total_amount_by_type("expense")
+    expenses = get_total_amount_by_type("expense")
 
-    balance = income - expense
+    balance = income - expenses
 
     return {
         "balance": balance,
         "income": income,
-        "expense": expense
+        "expenses": expenses
     }
 
 def update_transaction_by_id(transaction_id: int, updated_data: dict):
@@ -103,15 +83,6 @@ def get_transactions_by_type(transaction_type: str):
     ]   
     return transactions 
     
-
-def find_transaction_by_id(transaction_id: int):
-
-    for transaction in transactions:
-
-        if transaction["id"] == transaction_id:
-            return transaction
-
-    return None
 
 def get_all_transactions():
     rows = get_all_transactions_from_db()

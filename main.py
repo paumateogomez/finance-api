@@ -6,7 +6,6 @@ from src.services.transaction_service import (
     get_transaction_by_id,
     create_transaction,
     delete_transaction_by_id,
-    load_transactions,
     get_balance,
     update_transaction_by_id,
     get_transactions_by_type
@@ -15,8 +14,6 @@ from src.services.transaction_service import (
 app = FastAPI()
 
 initialize_database()
-
-load_transactions()
 
 @app.get("/")
 def home():
