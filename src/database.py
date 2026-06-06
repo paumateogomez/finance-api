@@ -24,24 +24,6 @@ def initialize_database():
     connection.commit()
     connection.close()
 
-def get_all_transactions_from_db():
-
-    connection = get_connection()
-
-    cursor = connection.cursor()
-
-    cursor.execute(
-        """
-        SELECT id, type, amount, category
-        FROM transactions
-        """
-    )
-
-    rows = cursor.fetchall()
-
-    connection.close()
-
-    return rows
 
 def insert_transaction(transaction_data: dict):
 
@@ -134,24 +116,6 @@ def update_transaction_by_id_from_db(
 
     connection.close()
 
-def get_transactions_by_type_from_db(transaction_type: str):
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    cursor.execute(
-        """
-        SELECT id, type, amount, category
-        FROM transactions
-        WHERE type = ?
-        """,
-        (transaction_type,)
-    )
-
-    rows = cursor.fetchall()
-
-    connection.close()
-
-    return rows
 
 def get_total_amount_by_type(transaction_type: str):
 
@@ -174,17 +138,53 @@ def get_total_amount_by_type(transaction_type: str):
 
     return result[0] or 0
 
-def get_transactions_by_category_from_db(category: str):
+
+def get_filtered_transactions_from_db(transaction_type=None, category=None, sort = None):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+        SELECT id, type, amount, category
+        FROM transactions
+    """
+
+    conditions = []
+    params = []
+
+    if transaction_type is not None:
+        conditions.append("type = ?")
+        params.append(transaction_type)
+
+    if category is not None:
+        conditions.append("category = ?")
+        params.append(category)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    if sort == "amount_asc":
+        query += " ORDER BY amount ASC"
+    elif sort == "amount_desc":
+        query += " ORDER BY amount DESC"
+
+    cursor.execute(query, params)
+
+    rows = cursor.fetchall()
+
+    connection.close()
+
+    return rows
+
+def get_statistics_by_category_from_db():
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute(
         """
-        SELECT id, type, amount, category
+        SELECT category, SUM(amount)
         FROM transactions
-        WHERE category = ?
-        """,
-        (category,)
+        GROUP BY category
+        """
     )
 
     rows = cursor.fetchall()
@@ -192,3 +192,19 @@ def get_transactions_by_category_from_db(category: str):
     connection.close()
 
     return rows
+
+def get_transaction_count_from_db():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) FROM transactions
+        """
+    )
+
+    result = cursor.fetchone()
+
+    connection.close()
+
+    return result[0]

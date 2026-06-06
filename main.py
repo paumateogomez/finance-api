@@ -2,13 +2,15 @@ from fastapi import FastAPI
 from src.models.transaction import Transaction
 from src.database import initialize_database
 from src.services.transaction_service import (
-    get_all_transactions,
     get_transaction_by_id,
     create_transaction,
     delete_transaction_by_id,
     get_balance,
     update_transaction_by_id,
-    get_transactions_by_type
+    get_filtered_transactions,
+    get_statistics_by_category,
+    get_transaction_count,
+    get_statistics
 )
 
 app = FastAPI()
@@ -21,8 +23,16 @@ def home():
 
 
 @app.get("/transactions")
-def get_transactions():
-    return get_all_transactions()
+def get_transactions(
+    type: str = None,
+    category: str = None,
+    sort: str = None
+):
+    return get_filtered_transactions(
+        type,
+        category,
+        sort
+    )
 
 
 @app.get("/transactions/{transaction_id}")
@@ -61,10 +71,14 @@ def update_transaction(
         transaction_data
     )
 
-@app.get("/transactions/type/{transaction_type}")
-def filter_transactions(transaction_type: str):
-    return get_transactions_by_type(transaction_type)       
+@app.get("/statistics/categories")
+def statistics_by_category():
+    return get_statistics_by_category()
 
-@app.get("/transactions/category")
-def filter_by_category(category: str):
-    return get_transactions_by_category(category)
+@app.get("/statistics/count")
+def transaction_count():
+    return get_transaction_count()
+
+@app.get("/statistics")
+def get_statistics_endpoint():
+    return get_statistics()

@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from src.database import insert_transaction, get_all_transactions_from_db, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_transactions_by_type_from_db, get_total_amount_by_type, get_transactions_by_category_from_db
+from src.database import insert_transaction, get_transaction_by_id_from_db, delete_transaction_by_id_from_db, update_transaction_by_id_from_db, get_total_amount_by_type, get_filtered_transactions_from_db, get_statistics_by_category_from_db, get_transaction_count_from_db
 
 def get_transaction_by_id(transaction_id: int):
     row = get_transaction_by_id_from_db(transaction_id)
@@ -68,9 +68,8 @@ def update_transaction_by_id(transaction_id: int, updated_data: dict):
         status_code=404,   detail="Transaction not found" 
     )   
 
-
-def get_transactions_by_type(transaction_type: str):
-    raw_transactions = get_transactions_by_type_from_db(transaction_type)
+def get_filtered_transactions( transaction_type=None, category=None, sort = None):
+    raw_transactions = get_filtered_transactions_from_db(transaction_type, category, sort)
 
     transactions = [
         {
@@ -81,32 +80,37 @@ def get_transactions_by_type(transaction_type: str):
         }
         for row in raw_transactions
     ]   
-    return transactions 
-    
+    return transactions
 
-def get_all_transactions():
-    rows = get_all_transactions_from_db()
-    transactions = [
+def get_statistics_by_category():
+    rows = get_statistics_by_category_from_db()
+
+    statistics = [
         {
-            "id": row[0],
-            "type": row[1],
-            "amount": row[2],
-            "category": row[3]
+            "category": row[0],
+            "total": row[1]
         }
         for row in rows
     ]
-    return transactions
 
-def get_transactions_by_category(category: str):
-    raw_transactions = get_transactions_by_category_from_db(category)
+    return statistics
 
-    transactions = [
-        {
-            "id": row[0],
-            "type": row[1],
-            "amount": row[2],
-            "category": row[3]
-        }
-        for row in raw_transactions
-    ]   
-    return transactions
+def get_transaction_count():
+    count = get_transaction_count_from_db()
+
+    return {
+        "total_transactions": count
+    }
+
+def get_statistics():
+    balance_data = get_balance()
+    category_statistics = get_statistics_by_category()
+    transaction_count = get_transaction_count()
+
+    return {
+        "total_transactions": transaction_count["total_transactions"],
+        "income": balance_data["income"],
+        "expenses": balance_data["expenses"],
+        "balance": balance_data["balance"],
+        "categories": category_statistics
+    }
